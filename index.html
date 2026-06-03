@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LinkedIn Fixer — AI Profile Optimizer</title>
+  <style>
+    :root {
+      --blue: #0a66c2;
+      --blue-dark: #004182;
+      --blue-light: #e8f4fd;
+      --green: #057642;
+      --green-light: #e8f5e9;
+      --amber: #b45309;
+      --amber-light: #fef3c7;
+      --red: #c53030;
+      --red-light: #fde8e8;
+      --gray: #f3f2ef;
+      --border: #e0e0e0;
+      --text: #1d1d1d;
+      --text-muted: #666;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+      color: white;
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: white;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .header-sub { font-size: 13px; opacity: 0.75; margin-left: 4px; }
+
+    .header-right { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+
+    .badge {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, #004182 0%, #0a66c2 60%, var(--gray) 100%);
+      padding: 48px 40px 80px;
+      text-align: center;
+      color: white;
+    }
+
+    .hero h2 { font-size: 36px; font-weight: 800; margin-bottom: 12px; letter-spacing: -1px; }
+
+    .hero p {
+      font-size: 16px;
+      opacity: 0.85;
+      max-width: 520px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 860px;
+      margin: -40px auto 40px;
+      padding: 0 20px;
+    }
+
+    .input-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 24px;
+    }
+
+    .input-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 24px; }
+
+    .tabs {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      background: white;
+      border: none;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .tab.active { background: var(--blue); color: white; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* PDF DROP ZONE */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fafafa;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--blue);
+      background: var(--blue-light);
+    }
+
+    .drop-zone .drop-icon { font-size: 40px; margin-bottom: 12px; }
+
+    .drop-zone h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+
+    .drop-zone p { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+
+    .drop-zone input[type=file] { display: none; }
+
+    .upload-btn {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .upload-btn:hover { background: var(--blue-dark); }
+
+    .pdf-success {
+      background: var(--green-light);
+      border: 1px solid #a7d7b8;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 14px;
+      color: var(--green);
+      display: none;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    /* URL INPUT */
+    .url-input-wrap { display: flex; gap: 10px; align-items: center; }
+
+    .url-input-wrap input {
+      flex: 1;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 15px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .url-input-wrap input:focus { border-color: var(--blue); }
+
+    .fetch-btn {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+
+    .fetch-btn:hover { background: var(--blue-dark); }
+    .fetch-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+    .url-note { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+
+    .fetched-preview {
+      background: var(--blue-light);
+      border: 1px solid #b3d4f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--blue-dark);
+      margin-top: 12px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    textarea {
+      width: 100%;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      transition: border 0.2s;
+      line-height: 1.6;
+    }
+
+    textarea:focus { border-color: var(--blue); }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .analyze-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #0a66c2, #004182);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 16px rgba(10,102,194,0.35);
+      margin-top: 20px;
+    }
+
+    .analyze-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(10,102,194,0.45);
+    }
+
+    .analyze-btn:disabled {
+      background: #aaa;
+      box-shadow: none;
+      transform: none;
+      cursor: not-allowed;
+    }
+
+    .error-box {
+      background: var(--red-light);
+      border: 1px solid #feb2b2;
+      color: var(--red);
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+
+    .loader {
+      text-align: center;
+      padding: 48px 20px;
+      display: none;
+    }
+
+    .loader-steps {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.3;
+      transition: opacity 0.4s;
+    }
+
+    .step.active { opacity: 1; }
+    .step.done { opacity: 0.6; }
+
+    .step-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--blue-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      border: 2px solid var(--border);
+      transition: all 0.4s;
+    }
+
+    .step.active .step-icon {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+
+    .step.done .step-icon { border-color: var(--green); background: var(--green-light); }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(10,102,194,0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(10,102,194,0); }
+    }
+
+    .step-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .loader-text { font-size: 15px; color: var(--text-muted); font-weight: 500; }
+
+    #results { display: none; }
+
+    .result-card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .result-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .score-wrap { display: flex; align-items: center; gap: 32px; }
+    .score-ring-wrap svg { width: 130px; height: 130px; }
+    .score-details { flex: 1; }
+    .score-grade { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+    .score-reason { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+
+    .item {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      line-height: 1.6;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .item-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .item.suggestion { background: var(--amber-light); border-left: 3px solid #f59e0b; }
+    .item.good { background: var(--green-light); border-left: 3px solid #38a169; }
+    .item.gap { background: var(--red-light); border-left: 3px solid #e53e3e; }
+    .item.rewrite { background: var(--blue-light); border-left: 3px solid var(--blue); }
+
+    .rewrite-section { margin-bottom: 20px; }
+
+    .rewrite-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--blue);
+      color: var(--blue);
+      padding: 3px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover { background: var(--blue); color: white; }
+
+    .rewrite-box {
+      background: var(--blue-light);
+      border: 1px solid #b3d4f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #1a3a5c;
+    }
+
+    .match-score-bar {
+      height: 12px;
+      background: #eee;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 12px 0 20px;
+    }
+
+    .match-score-fill {
+      height: 100%;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #e53e3e, #f59e0b, #38a169);
+      transition: width 1s ease;
+      width: 0;
+    }
+
+    .match-score-label { font-size: 22px; font-weight: 800; color: var(--blue); }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin: 20px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔧</div>
+    LinkedIn Fixer
+    <span class="header-sub">AI Profile Optimizer</span>
+  </div>
+  <div class="header-right">
+    <span class="badge">🔒 100% local · free · open source</span>
+  </div>
+</header>
+
+<div class="hero">
+  <h2>Fix Your LinkedIn in Minutes</h2>
+  <p>Upload your LinkedIn PDF or paste your profile. Get an AI score, rewritten sections, and a job gap analysis — all free and local.</p>
+</div>
+
+<main>
+  <div class="input-card">
+    <h3>Your LinkedIn Profile</h3>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('pdf')">📄 Upload PDF</button>
+      <button class="tab" onclick="switchTab('url')">🔗 Profile URL</button>
+      <button class="tab" onclick="switchTab('text')">📋 Paste Text</button>
+    </div>
+
+    <!-- PDF TAB -->
+    <div class="tab-panel active" id="tab-pdf">
+      <div class="drop-zone" id="dropZone"
+        onclick="document.getElementById('pdfInput').click()"
+        ondragover="handleDragOver(event)"
+        ondragleave="handleDragLeave(event)"
+        ondrop="handleDrop(event)">
+        <div class="drop-icon">📄</div>
+        <h4>Drop your LinkedIn PDF here</h4>
+        <p>Go to LinkedIn → More → Save to PDF, then upload it here</p>
+        <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('pdfInput').click()">
+          Choose PDF
+        </button>
+        <input type="file" id="pdfInput" accept=".pdf" onchange="handlePDFFile(this.files[0])"/>
+      </div>
+      <div class="pdf-success" id="pdfSuccess"></div>
+    </div>
+
+    <!-- URL TAB -->
+    <div class="tab-panel" id="tab-url">
+      <div class="url-input-wrap">
+        <input type="url" id="profileUrl" placeholder="https://linkedin.com/in/yourname"/>
+        <button class="fetch-btn" id="fetchBtn" onclick="fetchProfile()">Fetch Profile</button>
+      </div>
+      <p class="url-note">⚠️ Works for public profiles. If blocked, use PDF upload instead.</p>
+      <div class="fetched-preview" id="fetchedPreview"></div>
+    </div>
+
+    <!-- TEXT TAB -->
+    <div class="tab-panel" id="tab-text">
+      <textarea id="profileText" rows="10" placeholder="Paste your LinkedIn profile here — headline, about, experience, skills..."></textarea>
+    </div>
+
+    <div class="divider">add a job description for gap analysis</div>
+
+    <textarea id="jobDesc" rows="6" placeholder="(Optional) Paste the job description you're targeting..."></textarea>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
+      ✨ Analyze & Fix My Profile
+    </button>
+  </div>
+
+  <div class="loader" id="loader">
+    <div class="loader-steps">
+      <div class="step active" id="step1">
+        <div class="step-icon">📊</div>
+        <div class="step-label">Scoring</div>
+      </div>
+      <div class="step" id="step2">
+        <div class="step-icon">✍️</div>
+        <div class="step-label">Rewriting</div>
+      </div>
+      <div class="step" id="step3">
+        <div class="step-icon">🎯</div>
+        <div class="step-label">Matching</div>
+      </div>
+    </div>
+    <div class="loader-text" id="loaderText">Analyzing your profile...</div>
+  </div>
+
+  <div id="results">
+    <div class="result-card">
+      <h3>📊 Profile Score</h3>
+      <div class="score-wrap">
+        <div class="score-ring-wrap">
+          <svg viewBox="0 0 130 130">
+            <circle cx="65" cy="65" r="54" fill="none" stroke="#eee" stroke-width="10"/>
+            <circle id="scoreArc" cx="65" cy="65" r="54" fill="none" stroke="#0a66c2"
+              stroke-width="10" stroke-linecap="round"
+              stroke-dasharray="339" stroke-dashoffset="339"
+              transform="rotate(-90 65 65)"
+              style="transition: stroke-dashoffset 1.2s ease"/>
+            <text id="scoreNum" x="65" y="60" text-anchor="middle"
+              style="font-size:30px;font-weight:800;fill:#0a66c2;font-family:sans-serif">0</text>
+            <text x="65" y="78" text-anchor="middle"
+              style="font-size:11px;fill:#888;font-family:sans-serif">out of 100</text>
+          </svg>
+        </div>
+        <div class="score-details">
+          <div class="score-grade" id="scoreGrade">—</div>
+          <div class="score-reason" id="scoreReason"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <h3>💡 What to Improve</h3>
+      <div id="suggestions"></div>
+      <div id="positives"></div>
+    </div>
+
+    <div class="result-card">
+      <h3>✍️ Rewritten Sections</h3>
+      <div id="rewrites"></div>
+    </div>
+
+    <div class="result-card" id="gapCard" style="display:none">
+      <h3>🎯 Job Match Analysis</h3>
+      <div id="gaps"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const BACKEND = "http://localhost:5001";
+const OLLAMA  = "http://localhost:11434/api/chat";
+const MODEL   = "llama3.2";
+
+let activeTab = "pdf";
+let profileText = "";
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    t.classList.toggle("active",
+      (i === 0 && tab === "pdf") ||
+      (i === 1 && tab === "url") ||
+      (i === 2 && tab === "text"));
+  });
+  ["pdf","url","text"].forEach(id => {
+    document.getElementById("tab-" + id).classList.toggle("active", id === tab);
+  });
+}
+
+// PDF drag and drop
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById("dropZone").classList.add("dragover");
+}
+
+function handleDragLeave(e) {
+  document.getElementById("dropZone").classList.remove("dragover");
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById("dropZone").classList.remove("dragover");
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith(".pdf")) handlePDFFile(file);
+  else showError("Please drop a PDF file.");
+}
+
+async function handlePDFFile(file) {
+  if (!file) return;
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const dropZone = document.getElementById("dropZone");
+  dropZone.style.opacity = "0.5";
+
+  try {
+    const res = await fetch(`${BACKEND}/upload-pdf`, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    profileText = data.profile;
+    const success = document.getElementById("pdfSuccess");
+    success.style.display = "block";
+    success.innerHTML = `✅ <strong>${file.name}</strong> uploaded successfully!<br/><br/><span style="color:#444">${data.profile.slice(0, 200)}...</span>`;
+    hideError();
+  } catch (err) {
+    showError("PDF error: " + err.message);
+  }
+
+  dropZone.style.opacity = "1";
+}
+
+async function fetchProfile() {
+  const url = document.getElementById("profileUrl").value.trim();
+  if (!url) { showError("Enter a LinkedIn URL first."); return; }
+
+  const btn = document.getElementById("fetchBtn");
+  btn.disabled = true;
+  btn.textContent = "Fetching...";
+  hideError();
+
+  try {
+    const res = await fetch(`${BACKEND}/scrape`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    profileText = data.profile;
+    const preview = document.getElementById("fetchedPreview");
+    preview.style.display = "block";
+    preview.innerHTML = `<strong>✅ Profile fetched!</strong><br/><br/>${data.profile.slice(0, 300)}...`;
+  } catch (err) {
+    showError(err.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Fetch Profile";
+}
+
+async function callOllama(prompt) {
+  const res = await fetch(OLLAMA, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: [{ role: "user", content: prompt }],
+      stream: false,
+    }),
+  });
+  if (!res.ok) throw new Error("Ollama error " + res.status);
+  const data = await res.json();
+  return data.message.content;
+}
+
+function parseJSON(text) {
+  // try to extract JSON even if model adds extra text
+  const clean = text.replace(/```json|```/g, "").trim();
+  return JSON.parse(clean);
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById("step" + i);
+    el.classList.remove("active", "done");
+    if (i < n) el.classList.add("done");
+    if (i === n) el.classList.add("active");
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById("errorBox");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+
+function hideError() {
+  document.getElementById("errorBox").style.display = "none";
+}
+
+function gradeLabel(score) {
+  if (score >= 85) return { label: "Excellent 🌟", color: "#057642" };
+  if (score >= 70) return { label: "Good 👍", color: "#0a66c2" };
+  if (score >= 50) return { label: "Needs Work 🔧", color: "#b45309" };
+  return { label: "Needs Major Fixes 🚨", color: "#c53030" };
+}
+
+function animateScore(score) {
+  const arc = document.getElementById("scoreArc");
+  const num = document.getElementById("scoreNum");
+  const { label, color } = gradeLabel(score);
+  const circumference = 339;
+  const offset = circumference - (score / 100) * circumference;
+  setTimeout(() => {
+    arc.style.strokeDashoffset = offset;
+    arc.style.stroke = color;
+    num.textContent = score;
+    num.style.fill = color;
+    document.getElementById("scoreGrade").textContent = label;
+    document.getElementById("scoreGrade").style.color = color;
+  }, 200);
+}
+
+function item(text, type, icon) {
+  return `<div class="item ${type}"><span class="item-icon">${icon}</span><span>${text}</span></div>`;
+}
+
+async function analyze() {
+  hideError();
+
+  let profile = "";
+  if (activeTab === "pdf" || activeTab === "url") {
+    profile = profileText;
+    if (!profile) {
+      showError(activeTab === "pdf"
+        ? "Please upload your LinkedIn PDF first."
+        : "Click 'Fetch Profile' first.");
+      return;
+    }
+  } else {
+    profile = document.getElementById("profileText").value.trim();
+    if (!profile) { showError("Please paste your LinkedIn profile text."); return; }
+  }
+
+  const jobDesc = document.getElementById("jobDesc").value.trim();
+
+  document.getElementById("analyzeBtn").disabled = true;
+  document.getElementById("results").style.display = "none";
+  document.getElementById("loader").style.display = "block";
+  document.getElementById("gapCard").style.display = "none";
+
+  try {
+    setStep(1);
+    document.getElementById("loaderText").textContent = "Scoring your profile...";
+
+    const scoreRaw = await callOllama(`You are a LinkedIn profile expert. Analyze this profile and return ONLY valid JSON with no markdown fences.
+
+Profile:
+${profile}
+
+JSON:
+{
+  "score": <0-100>,
+  "score_reason": "<one sentence>",
+  "suggestions": ["<fix 1>", "<fix 2>", "<fix 3>", "<fix 4>"],
+  "positives": ["<strength 1>", "<strength 2>"]
+}`);
+
+    const scored = parseJSON(scoreRaw);
+    // normalize fields in case model uses different names
+    scored.suggestions = scored.suggestions || scored.improvements || scored.fixes || [];
+    scored.positives = scored.positives || scored.strengths || scored.good || [];
+    scored.score = scored.score || scored.profile_score || 50;
+    scored.score_reason = scored.score_reason || scored.reason || scored.summary || "";
+
+    setStep(2);
+    document.getElementById("loaderText").textContent = "Rewriting your headline and summary...";
+
+    const rewriteRaw = await callOllama(`You are a professional LinkedIn copywriter. Rewrite this profile to be more compelling. Return ONLY valid JSON with no markdown fences.
+
+Profile:
+${profile}
+
+JSON:
+{
+  "headline": "<compelling headline under 220 chars>",
+  "summary": "<rewritten about section, 3-4 sentences, first person, achievement-focused>",
+  "experience_tips": ["<tip 1>", "<tip 2>", "<tip 3>"]
+}`);
+
+    const rewritten = parseJSON(rewriteRaw);
+    // normalize rewrite fields
+    rewritten.headline = rewritten.headline || rewritten.new_headline || "";
+    rewritten.summary = rewritten.summary || rewritten.about || rewritten.new_summary || "";
+    rewritten.experience_tips = rewritten.experience_tips || rewritten.tips || rewritten.experience || [];
+
+    let gapData = null;
+    if (jobDesc) {
+      setStep(3);
+      document.getElementById("loaderText").textContent = "Matching your profile to the job...";
+
+      const gapRaw = await callOllama(`You are a recruiter evaluating a LinkedIn profile against a job description. Return ONLY valid JSON with no markdown fences.
+
+Profile:
+${profile}
+
+Job Description:
+${jobDesc}
+
+JSON:
+{
+  "match_score": <0-100>,
+  "matching_skills": ["<match 1>", "<match 2>", "<match 3>"],
+  "missing_skills": ["<gap 1>", "<gap 2>", "<gap 3>"],
+  "recommendations": ["<action 1>", "<action 2>"]
+}`);
+
+      gapData = parseJSON(gapRaw);
+    }
+
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("results").style.display = "block";
+
+    animateScore(scored.score);
+    document.getElementById("scoreReason").textContent = scored.score_reason;
+
+    document.getElementById("suggestions").innerHTML =
+      scored.suggestions.map(s => item(s, "suggestion", "⚠️")).join("");
+
+    if (scored.positives?.length) {
+      document.getElementById("positives").innerHTML =
+        `<div class="section-title">What's Already Working</div>` +
+        scored.positives.map(p => item(p, "good", "✅")).join("");
+    }
+
+    document.getElementById("rewrites").innerHTML = `
+      <div class="rewrite-section">
+        <div class="rewrite-label">
+          Headline
+          <button class="copy-btn" onclick="copyText(this, ${JSON.stringify(rewritten.headline)})">Copy</button>
+        </div>
+        <div class="rewrite-box">${rewritten.headline}</div>
+      </div>
+      <div class="rewrite-section">
+        <div class="rewrite-label">
+          About / Summary
+          <button class="copy-btn" onclick="copyText(this, ${JSON.stringify(rewritten.summary)})">Copy</button>
+        </div>
+        <div class="rewrite-box">${rewritten.summary}</div>
+      </div>
+      <div class="rewrite-section">
+        <div class="rewrite-label">Experience Tips</div>
+        ${rewritten.experience_tips.map(t => item(t, "rewrite", "💡")).join("")}
+      </div>`;
+
+    if (gapData) {
+      document.getElementById("gapCard").style.display = "block";
+      document.getElementById("gaps").innerHTML = `
+        <div style="display:flex;align-items:baseline;gap:8px;">
+          <span class="match-score-label">${gapData.match_score}%</span>
+          <span style="font-size:14px;color:var(--text-muted)">match with this job</span>
+        </div>
+        <div class="match-score-bar">
+          <div class="match-score-fill" style="width:${gapData.match_score}%"></div>
+        </div>
+        <div class="section-title">✅ What Matches</div>
+        ${gapData.matching_skills.map(s => item(s, "good", "✅")).join("")}
+        <div class="section-title">❌ What's Missing</div>
+        ${gapData.missing_skills.map(s => item(s, "gap", "❌")).join("")}
+        <div class="section-title">📌 How to Close the Gap</div>
+        ${gapData.recommendations.map(r => item(r, "suggestion", "→")).join("")}`;
+    }
+
+  } catch (err) {
+    document.getElementById("loader").style.display = "none";
+    if (err.message.includes("fetch") || err.message.includes("Ollama")) {
+      showError("Can't reach Ollama. Open Terminal and run: ollama serve");
+    } else {
+      showError("Something went wrong: " + err.message);
+    }
+  }
+
+  document.getElementById("analyzeBtn").disabled = false;
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = "Copied!";
+    setTimeout(() => btn.textContent = "Copy", 2000);
+  });
+}
+</script>
+</body>
+</html>
